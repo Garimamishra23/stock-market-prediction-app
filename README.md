@@ -175,7 +175,7 @@ QuantEdge/
 ├── generate_stats_report.py     # Stage 9: PDF + PNG performance report generation
 │
 ├── requirements.txt             # All Python dependencies
-├── images/                      # README screenshots and slide exports
+├── image/                      # README screenshots and slide exports
 │   ├── system_architecture.png
 │   ├── model_layer.png
 │   ├── dashboard_overview.png
