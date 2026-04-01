@@ -1,26 +1,26 @@
-
-# Ignore ML models and data logs
+# --- ML Models and Data ---
 *.pkl
 *.json
 !config.json
 *.csv
-*.png
-!image/dashboard_overview.png
-!image/shap_plot.png
-!image/*.png
 *.pdf
+
+# --- Images and Visuals ---
+# Ignore all PNGs everywhere EXCEPT the ones in your image folder
+*.png
+!image/*.png
+
+# --- Application Logs and Cache ---
 logs/
 *.log
-# Ignore Python environment and cache
+custom_cache/
+*.db
+
+# --- Python Environment and Secrets ---
 venv/
 __pycache__/
 .env
 
-# Ignore OS-specific junk
+# --- OS-specific Junk ---
 .DS_Store
 Thumbs.db
-*.csv
-*.png
-logs/
-custom_cache/
-*.db
