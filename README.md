@@ -1,4 +1,4 @@
-![Dashboard](image/dashboard_overview.png)
+![Dashboard](image/dashboard.png)
 
 # QuantEdge — Stock Signal System ⚡📈
 
