@@ -1,0 +1,26 @@
+
+# Ignore ML models and data logs
+*.pkl
+*.json
+!config.json
+*.csv
+*.png
+!image/dashboard_overview.png
+!image/shap_plot.png
+!image/*.png
+*.pdf
+logs/
+*.log
+# Ignore Python environment and cache
+venv/
+__pycache__/
+.env
+
+# Ignore OS-specific junk
+.DS_Store
+Thumbs.db
+*.csv
+*.png
+logs/
+custom_cache/
+*.db
