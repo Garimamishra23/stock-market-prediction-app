@@ -238,7 +238,7 @@ Signal:       ⚠ LOW CONFIDENCE  (suppressed)
 
 ## 🖥️ Dashboard Features
 
-![Dashboard](image/dashboard_overview.jpg)
+![Dashboard](image/dashboard_overview.png)
 
 ### KPI Cards
 Five cards update in real time for the selected stock — Current Price · RSI (14) · News Sentiment · Volume Ratio · AI Signal
@@ -267,7 +267,7 @@ Full candlestick chart with SMA 20/50 overlay, volume bars, and RSI subplot — 
 
 ## 🔍 SHAP Explainability
 
-![SHAP Plot](image/shap_plot.jpg)
+![SHAP Plot](image/shap_plot.png)
 
 Every signal includes a SHAP (SHapley Additive exPlanations) breakdown showing which technical features pushed the model toward BUY or SELL — and by how much.
 
