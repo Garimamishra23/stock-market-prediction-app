@@ -35,7 +35,7 @@ Assist swing traders in making data-informed decisions by:
 
 ### 📌 Architecture Overview
 
-[System Architecture](image/system_architecture.jpg)
+![System Architecture](image/system_architecture.jpg)
 
 The pipeline runs in 5 sequential stages:
 
