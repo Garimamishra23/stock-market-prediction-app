@@ -12,4 +12,3 @@ python-dotenv
 beautifulsoup4
 scipy
 shap==0.44.1
-numba==0.58.1
