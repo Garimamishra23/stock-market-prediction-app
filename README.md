@@ -1,3 +1,5 @@
+![Dashboard](image/dashoard.jpg)
+
 # QuantEdge — Stock Signal System ⚡📈
 
 A real-time AI-powered swing trading signal system for US and Indian equity markets. This system collects live market data, engineers 93 technical features, predicts 5-day price direction using a **three-model ensemble** (XGBoost, Random Forest, LSTM), and displays actionable trading signals with **SHAP explainability** and **news sentiment analysis** — all through a premium dark-terminal **Streamlit dashboard**.
@@ -268,6 +270,10 @@ Full candlestick chart with SMA 20/50 overlay, volume bars, and RSI subplot — 
 ## 🔍 SHAP Explainability
 
 ![SHAP Plot](image/shap_plot.png)
+![SHAP Confidence](image/signal_confidence.png)
+![SHAP Staility](image/shap_stability.png)
+![SHAP Feature](image/shap_feature.png)
+
 
 Every signal includes a SHAP (SHapley Additive exPlanations) breakdown showing which technical features pushed the model toward BUY or SELL — and by how much.
 
