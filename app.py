@@ -2562,21 +2562,6 @@ def display_model_performance(model_results, selected_symbol):
 # ─────────────────────────────────────────────────────────────────
 
 def main():
-    import os
-    st.sidebar.write("--- DEBUG ---")
-    st.sidebar.write("PKL files found:")
-    for f in ['model_results.pkl', 'training_data.pkl', 'xgb_models.pkl', 
-              'rf_models.pkl', 'lstm_models.pkl', 'ensemble_models.pkl']:
-        exists = os.path.exists(f)
-        st.sidebar.write(f"{f}: {'✅' if exists else '❌'}")
-    
-    st.sidebar.write("Current directory:")
-    st.sidebar.write(os.getcwd())
-    
-    st.sidebar.write("Files in directory:")
-    files = [f for f in os.listdir('.') if f.endswith('.pkl')]
-    st.sidebar.write(files if files else "NO PKL FILES FOUND")
-    st.sidebar.write("--- END DEBUG ---")
 
     # ── SIDEBAR ──────────────────────────────────────────────────
     with st.sidebar:
