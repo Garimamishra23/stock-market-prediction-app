@@ -3107,9 +3107,9 @@ def main():
     ])
     
     with tab1:
-    live_sentiment = fetch_news_sentiment(selected_symbol)
-    sentiment_to_show = live_sentiment if live_sentiment else stock_data['sentiment']
-    display_sentiment_analysis(sentiment_to_show)
+        live_sentiment = fetch_news_sentiment(selected_symbol)
+        sentiment_to_show = live_sentiment if live_sentiment else stock_data['sentiment']
+        display_sentiment_analysis(sentiment_to_show)
         
     with tab2: 
         display_technical_indicators(stock_data['technicals'], stock_data['price_history'])
