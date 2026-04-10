@@ -11,4 +11,5 @@ requests
 python-dotenv
 beautifulsoup4
 scipy
-shap
+shap==0.44.1
+numba==0.58.1
