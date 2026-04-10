@@ -600,7 +600,7 @@ if __name__ == "__main__":
         # Wait between requests
         if symbol != test_symbols[-1]:
             print("   Waiting 2 seconds...")
-            time.sleep(2)
+            time.sleep(15)
     
     print("\n" + "=" * 70)
     print("✅ Test complete!")

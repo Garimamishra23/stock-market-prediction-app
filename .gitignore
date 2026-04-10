@@ -1,26 +1,20 @@
-# --- ML Models and Data ---
-*.pkl
+# Keep pkl files (AI models)
+# Keep nothing else large
+
 *.json
-!config.json
 *.csv
 *.pdf
-
-# --- Images and Visuals ---
-# Ignore all PNGs everywhere EXCEPT the ones in your image folder
 *.png
 !image/*.png
 
-# --- Application Logs and Cache ---
 logs/
 *.log
 custom_cache/
 *.db
 
-# --- Python Environment and Secrets ---
 venv/
 __pycache__/
 .env
 
-# --- OS-specific Junk ---
 .DS_Store
 Thumbs.db

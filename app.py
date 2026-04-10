@@ -1849,7 +1849,146 @@ hr { border-color: rgba(0,200,255,0.1) !important; }
 # ─────────────────────────────────────────────────────────────────
 # DATA LOADING
 # ─────────────────────────────────────────────────────────────────
-
+import pandas as pd
+@st.cache_data(ttl=3600)
+def load_live_data():
+    """Fetch fresh live data from yfinance - replaces json file"""
+    
+    SYMBOLS = [
+        'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA',
+        'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS'
+    ]
+    
+    live_data = {}
+    
+    for symbol in SYMBOLS:
+        try:
+            ticker = yf.Ticker(symbol)
+            hist   = ticker.history(period='2y')
+            info   = {}
+            
+            try:
+                info = ticker.info
+            except:
+                pass
+            
+            if hist.empty:
+                continue
+            
+            # Build rows list
+            rows = []
+            for date, row in hist.iterrows():
+                rows.append({
+                    'date':   str(date)[:10],
+                    'open':   float(row['Open']),
+                    'high':   float(row['High']),
+                    'low':    float(row['Low']),
+                    'close':  float(row['Close']),
+                    'volume': int(row['Volume']),
+                })
+            
+            if len(rows) < 2:
+                continue
+            
+            current_price = rows[-1]['close']
+            prev_price    = rows[-2]['close']
+            day_change    = (current_price - prev_price) / prev_price * 100
+            
+            # Compute technicals
+            close = hist['Close']
+            high  = hist['High']
+            low   = hist['Low']
+            vol   = hist['Volume']
+            
+            delta = close.diff()
+            gain  = delta.where(delta > 0, 0).rolling(14).mean()
+            loss  = (-delta.where(delta < 0, 0)).rolling(14).mean()
+            rsi   = 100 - (100 / (1 + gain / loss))
+            
+            ema12       = close.ewm(span=12, adjust=False).mean()
+            ema26       = close.ewm(span=26, adjust=False).mean()
+            macd        = ema12 - ema26
+            macd_signal = macd.ewm(span=9, adjust=False).mean()
+            
+            hl  = high - low
+            hc  = (high - close.shift()).abs()
+            lc  = (low  - close.shift()).abs()
+            atr = pd.concat([hl, hc, lc], axis=1).max(axis=1).rolling(14).mean()
+            
+            vol_ratio = vol / vol.rolling(20).mean()
+            sma20     = close.rolling(20).mean()
+            sma50     = close.rolling(50).mean()
+            
+            def safe(series):
+                val = series.iloc[-1]
+                return float(val) if not pd.isna(val) else None
+            
+            currency = '₹' if symbol.endswith('.NS') else '$'
+            
+            live_data[symbol] = {
+                'symbol':               symbol,
+                'exchange':             'NSE' if symbol.endswith('.NS') else 'NASDAQ',
+                'currency':             currency,
+                'collection_timestamp': datetime.now().isoformat(),
+                'market_data': {
+                    'company': {
+                        'name':           info.get('longName', symbol),
+                        'sector':         info.get('sector', 'Unknown'),
+                        'industry':       info.get('industry', 'Unknown'),
+                        'country':        info.get('country', 'Unknown'),
+                        'market_cap':     float(info.get('marketCap', 0) or 0),
+                        'pe_ratio':       float(info.get('trailingPE', 0) or 0),
+                        'beta':           float(info.get('beta', 0) or 0),
+                        'dividend_yield': float(info.get('dividendYield', 0) or 0),
+                    },
+                    'current': {
+                        'current_price': current_price,
+                        'day_change':    round(day_change, 4),
+                    },
+                    'technicals': {
+                        'rsi_14':          safe(rsi),
+                        'macd':            safe(macd),
+                        'macd_signal':     safe(macd_signal),
+                        'atr_14':          safe(atr),
+                        'volume_ratio_20': safe(vol_ratio),
+                        'sma_20':          safe(sma20),
+                        'sma_50':          safe(sma50),
+                    },
+                    'full_dataframe': rows,
+                    'data_points':    len(rows),
+                    'date_range': {
+                        'start': rows[0]['date'],
+                        'end':   rows[-1]['date'],
+                    },
+                },
+                'sentiment_data': {
+                    'articles':       [],
+                    'combined_score': 0,
+                    'sentiment_label':'NEUTRAL',
+                    'summary': {
+                        'total_articles': 0,
+                        'combined_score': 0,
+                        'vader_avg':      0,
+                        'alpha_avg':      0,
+                        'sentiment':      'NEUTRAL',
+                    }
+                },
+                'summary': {
+                    'data_points':       len(rows),
+                    'date_range':        {'start': rows[0]['date'], 'end': rows[-1]['date']},
+                    'current_price':     current_price,
+                    'currency':          currency,
+                    'total_articles':    0,
+                    'overall_sentiment': 'NEUTRAL',
+                    'sentiment_score':   0,
+                }
+            }
+            
+        except Exception as e:
+            st.warning(f"Could not load {symbol}: {e}")
+            continue
+    
+    return live_data if live_data else None
 @st.cache_data
 def load_data():
     possible_files = glob.glob("global_market_data_*.json")
@@ -2351,9 +2490,11 @@ def main():
         st.markdown('<div class="sidebar-logo">QuantEdge</div>', unsafe_allow_html=True)
         st.markdown('<div class="sidebar-sub">Global Market Intelligence</div>', unsafe_allow_html=True)
 
-        data = load_data()
-        if not data:
-            return
+        with st.spinner('⚡ Fetching live market data...'):
+    data = load_live_data()
+    if not data:
+        st.error("Could not fetch live market data. Please refresh.")
+        return
 
         model_results = load_model_results()
      

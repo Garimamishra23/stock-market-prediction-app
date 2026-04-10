@@ -242,7 +242,7 @@ class FinalDataCollector:
 
             if i < total:
                 print("   ⏱️  Waiting 2s...")
-                time.sleep(2)
+                time.sleep(15)
 
         # FIX 4: Structured run report
         print(f"\n{'='*60}")
