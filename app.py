@@ -351,12 +351,22 @@ def get_live_prediction(symbol):
                     agreement_data = {'label': 'Unknown', 'type': 'unknown'}
 
     # True fallback
+    # True fallback
     if confidence is None:
-        stored     = (mr_check or {}).get(symbol, {})
-        stored_acc = stored.get('best_acc', 0.55)
-        direction  = 1 if daily_return >= 0 else 0
-        confidence = stored_acc if direction == 1 else (1 - stored_acc)
-        model_name = f"{stored.get('best_model','model')} (stored accuracy)"
+        stored      = (mr_check or {}).get(symbol, {})
+        stored_acc  = stored.get('best_acc', 0.55)
+        direction   = 1 if daily_return >= 0 else 0
+        confidence  = stored_acc if direction == 1 else (1 - stored_acc)
+        model_name  = f"{stored.get('best_model','model')} (stored accuracy)"
+        import math
+        c = max(min(confidence, 0.9999), 0.0001)
+        margin = abs(math.log(c / (1 - c)))
+        agree_label = 'High' if margin >= 1.5 else 'Moderate' if margin >= 0.5 else 'Low'
+        agreement_data = {
+            'label':  agree_label,
+            'type':   'xgb',
+            'margin': round(margin, 3),
+        }
 
     # FIX-3: Sentiment dampening
     try:
@@ -1989,6 +1999,74 @@ def load_live_data():
             continue
     
     return live_data if live_data else None
+@st.cache_data(ttl=3600)
+def fetch_news_sentiment(symbol):
+    try:
+        try:
+            api_key = st.secrets.get("ALPHA_VANTAGE_KEY", "")
+        except:
+            api_key = os.getenv("ALPHA_VANTAGE_KEY", "")
+
+        if not api_key:
+            return {}
+
+        import requests
+        from nltk.sentiment.vader import SentimentIntensityAnalyzer
+        import nltk
+        nltk.download('vader_lexicon', quiet=True)
+        vader = SentimentIntensityAnalyzer()
+
+        av_symbol = symbol.replace('.NS', '')
+
+        url = "https://www.alphavantage.co/query"
+        params = {
+            'function': 'NEWS_SENTIMENT',
+            'tickers':  av_symbol,
+            'limit':    10,
+            'apikey':   api_key,
+        }
+        r = requests.get(url, params=params, timeout=10)
+        data = r.json()
+
+        if 'feed' not in data:
+            return {}
+
+        articles = []
+        scores   = []
+
+        for item in data['feed'][:10]:
+            title = item.get('title', '')
+            score = vader.polarity_scores(title)['compound']
+            scores.append(score)
+            articles.append({
+                'title':           title,
+                'description':     item.get('summary', '')[:200],
+                'source':          item.get('source', 'Unknown'),
+                'published':       item.get('time_published', '')[:8],
+                'url':             item.get('url', '#'),
+                'sentiment_score': round(score, 4),
+                'sentiment_label': 'Positive' if score >= 0.05 else 'Negative' if score <= -0.05 else 'Neutral',
+            })
+
+        avg_score = sum(scores) / len(scores) if scores else 0
+        label = ('BULLISH' if avg_score >= 0.05
+                 else 'BEARISH' if avg_score <= -0.05
+                 else 'NEUTRAL')
+
+        return {
+            'articles':        articles,
+            'combined_score':  round(avg_score, 4),
+            'sentiment_label': label,
+            'summary': {
+                'total_articles': len(articles),
+                'combined_score': round(avg_score, 4),
+                'vader_avg':      round(avg_score, 4),
+                'alpha_avg':      0.0,
+                'sentiment':      label,
+            }
+        }
+    except Exception:
+        return {}
 @st.cache_data
 def load_data():
     possible_files = glob.glob("global_market_data_*.json")
@@ -3028,8 +3106,10 @@ def main():
         
     ])
     
-    with tab1: 
-        display_sentiment_analysis(stock_data['sentiment'])
+    with tab1:
+    live_sentiment = fetch_news_sentiment(selected_symbol)
+    sentiment_to_show = live_sentiment if live_sentiment else stock_data['sentiment']
+    display_sentiment_analysis(sentiment_to_show)
         
     with tab2: 
         display_technical_indicators(stock_data['technicals'], stock_data['price_history'])
