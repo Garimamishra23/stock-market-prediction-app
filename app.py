@@ -2491,11 +2491,10 @@ def main():
         st.markdown('<div class="sidebar-sub">Global Market Intelligence</div>', unsafe_allow_html=True)
 
         with st.spinner('⚡ Fetching live market data...'):
-    data = load_live_data()
-    if not data:
-        st.error("Could not fetch live market data. Please refresh.")
-        return
-
+            data = load_live_data()
+            if not data:
+                st.error("Could not fetch live market data. Please refresh.")
+                return
         model_results = load_model_results()
      
 
