@@ -206,9 +206,16 @@ def get_live_prediction(symbol):
                 full_df      = market_block.get('full_dataframe', [])
             except Exception:
                 full_df = []
+        try:
+            import tensorflow
+            tf_available = True
+        except ImportError:
+            tf_available = False
+            best_model_type = 'XGBoost'  # force fallback to XGBoost
+
 
         # FIX-1: LSTM branch — 20-day sequence
-        if best_model_type == 'LSTM' and feature_names and scaler and len(full_df) >= 20:
+        if best_model_type == 'LSTM' and tf_available and feature_names and scaler and len(full_df) >= 20:
             try:
                 lstm_models = _load_once('lstm_models.pkl', 'lstm_models')
                 if lstm_models and symbol in lstm_models:
