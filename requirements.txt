@@ -11,4 +11,4 @@ requests
 python-dotenv
 beautifulsoup4
 scipy
-shap==0.44.1
+shap
