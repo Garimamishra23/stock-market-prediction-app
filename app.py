@@ -973,7 +973,10 @@ def get_shap_explanation(symbol: str, live_pred: dict) -> list:
         model_type = ensemble_mdls[symbol]
 
     json_files = glob.glob("global_market_data_*.json")
+    st.session_state['shap_debug2'] = f"json_files found: {len(json_files)}"
+
     if not json_files:
+        st.session_state['shap_debug2'] = "NO JSON FILES - this is why SHAP fails"
         return []
     try:
         with open(sorted(json_files)[-1], 'r', encoding='utf-8') as f:
@@ -2938,6 +2941,7 @@ def main():
             st.sidebar.write(f"training_data loaded: {training_data_check is not None}")
             st.sidebar.write(f"xgb_models loaded: {xgb_check is not None}")
             st.sidebar.write(f"SHAP internal: {st.session_state.get('shap_debug', 'not set')}")
+            st.sidebar.write(f"SHAP debug2: {st.session_state.get('shap_debug2', 'not set')}")
             if training_data_check and selected_symbol in training_data_check:
                 st.sidebar.write(f"Symbol in training_data: True")
             else:
