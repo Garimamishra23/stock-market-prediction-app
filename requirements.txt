@@ -4,11 +4,11 @@ numpy
 plotly
 yfinance==0.2.61
 scikit-learn
-xgboost
+xgboost==1.7.6
 nltk
 python-dateutil
 requests
 python-dotenv
 beautifulsoup4
 scipy
-shap
+shap==0.44.1
