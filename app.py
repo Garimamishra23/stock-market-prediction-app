@@ -7,7 +7,6 @@
 #   3. SHAP Stability Analysis - Bootstrap confidence intervals
 #   4. SHAP Confidence Correlation - Validation of explanation quality
 # ══════════════════════════════════════════════════════════════
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -1925,6 +1924,7 @@ def main():
         pred_signal = 'STRONG BUY' if pred_conf >= 0.60 else 'HOLD' if pred_conf >= 0.50 else 'SELL'
         pred_sub    = f"{pred_conf:.1%} accuracy"
         is_gated    = False
+        pred_agree  = ""
 
     sig_cls  = _signal_class(pred_signal)
     sig_icon = _signal_icon(pred_signal)
