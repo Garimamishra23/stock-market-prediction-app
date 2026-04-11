@@ -931,10 +931,6 @@ def generate_plain_english_summary(shap_features: list, signal: str) -> str:
 # ─────────────────────────────────────────────────────────────────
 
 def get_shap_explanation(symbol: str, live_pred: dict) -> list:
-    """
-    Compute real SHAP values for the current live prediction.
-    Returns top-5 features as list of dicts.
-    """
     if not SHAP_AVAILABLE:
         return []
 
@@ -945,6 +941,18 @@ def get_shap_explanation(symbol: str, live_pred: dict) -> list:
     ensemble_mdls = _load_once('ensemble_models.pkl','ensemble_models')
 
     if not training_data or symbol not in training_data:
+        st.session_state['shap_debug'] = "training_data missing or symbol not found"
+        return []
+
+    stock_td      = training_data[symbol]
+    feature_names = stock_td.get('feature_names', [])
+    scaler        = stock_td.get('scaler')
+    X_train       = stock_td.get('X_train')
+
+    st.session_state['shap_debug'] = f"feature_names:{len(feature_names)} scaler:{scaler is not None} X_train:{X_train is not None}"
+
+    if not feature_names or scaler is None:
+        st.session_state['shap_debug'] = f"FAILED: feature_names empty={not feature_names} scaler None={scaler is None}"
         return []
 
     stock_td      = training_data[symbol]
@@ -2921,6 +2929,7 @@ def main():
             xgb_check = _load_once('xgb_models.pkl', 'xgb_models')
             st.sidebar.write(f"training_data loaded: {training_data_check is not None}")
             st.sidebar.write(f"xgb_models loaded: {xgb_check is not None}")
+            st.sidebar.write(f"SHAP internal: {st.session_state.get('shap_debug', 'not set')}")
             if training_data_check and selected_symbol in training_data_check:
                 st.sidebar.write(f"Symbol in training_data: True")
             else:
