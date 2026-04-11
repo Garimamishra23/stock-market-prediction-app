@@ -2908,6 +2908,24 @@ def main():
             """, unsafe_allow_html=True)
 
             shap_features = get_shap_explanation(selected_symbol, live_pred)
+            try:
+                pass  # shap_features already computed above
+            except Exception as e:
+                shap_features = []
+                st.sidebar.error(f"SHAP error: {str(e)[:200]}")
+
+            st.sidebar.write("--- SHAP DEBUG ---")
+            st.sidebar.write(f"SHAP_AVAILABLE: {SHAP_AVAILABLE}")
+            st.sidebar.write(f"SHAP features: {len(shap_features) if shap_features else 'NONE'}")
+            training_data_check = _load_once('training_data.pkl', 'training_data')
+            xgb_check = _load_once('xgb_models.pkl', 'xgb_models')
+            st.sidebar.write(f"training_data loaded: {training_data_check is not None}")
+            st.sidebar.write(f"xgb_models loaded: {xgb_check is not None}")
+            if training_data_check and selected_symbol in training_data_check:
+                st.sidebar.write(f"Symbol in training_data: True")
+            else:
+                st.sidebar.write(f"Symbol in training_data: FALSE")
+            st.sidebar.write("--- END DEBUG ---")
 
             if shap_features:
                 max_abs = max(abs(f['shap']) for f in shap_features) or 1.0
