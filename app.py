@@ -1,7 +1,8 @@
 # app.py — QuantEdge Premium UI · S-Grade Capstone Edition with Advanced SHAP
 # ══════════════════════════════════════════════════════════════
 # ENHANCED FEATURES:
-#   1. SHAP Interaction Effects - Feature interaction analysis
+#   1. SHAP Interaction Effects - Feature inmodel_type = 'XGBoost'
+
 #   2. SHAP Time-Series Evolution - For LSTM sequence importance
 #   3. SHAP Stability Analysis - Bootstrap confidence intervals
 #   4. SHAP Confidence Correlation - Validation of explanation quality
@@ -189,6 +190,10 @@ def get_live_prediction(symbol):
         best_model_type = 'XGBoost'
         if ensemble_mdls and symbol in ensemble_mdls:
             declared = ensemble_mdls[symbol]
+        try:
+            st.session_state['shap_debug2'] = f"model_type:{model_type}"
+        except:
+            pass
             if declared == 'None':
                 best_model_type = 'XGBoost'  # fallback for excluded stocks
             else:
@@ -977,6 +982,7 @@ def get_shap_explanation(symbol: str, live_pred: dict) -> list:
         market_block = stock_entry.get('market_data', stock_entry)
         full_df      = market_block.get('full_dataframe', [])
     except Exception:
+        st.session_state['shap_debug2'] = f"JSON load failed: {str(e)[:300]}"
         return []
 
     if not full_df:
@@ -1027,6 +1033,7 @@ def get_shap_explanation(symbol: str, live_pred: dict) -> list:
                 vals = np.array(sv).flatten()
 
         except Exception:
+            st.session_state['shap_debug2'] = f"XGB/RF SHAP failed: {str(e)[:300]}"
             return []
 
     # Branch B — LSTM
@@ -1071,6 +1078,7 @@ def get_shap_explanation(symbol: str, live_pred: dict) -> list:
             vals      = mean_abs * last_sign
 
         except Exception:
+            st.session_state['shap_debug2'] = f"LSTM SHAP failed: {str(e)[:300]}"
             return []
 
     else:
