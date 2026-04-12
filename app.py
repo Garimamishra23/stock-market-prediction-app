@@ -2074,6 +2074,46 @@ def fetch_news_sentiment(symbol):
         }
     except Exception:
         return {}
+def get_finbert_score(text):
+    """Call HuggingFace free API for FinBERT sentiment"""
+    try:
+        import requests as req
+        
+        # Get token
+        try:
+            hf_token = st.secrets.get("HF_TOKEN", "")
+        except:
+            hf_token = os.getenv("HF_TOKEN", "")
+        
+        API_URL = "https://api-inference.huggingface.co/models/yiyanghkust/finbert-tone"
+        headers = {}
+        if hf_token:
+            headers["Authorization"] = f"Bearer {hf_token}"
+        
+        response = req.post(
+            API_URL,
+            headers=headers,
+            json={"inputs": text[:512]},
+            timeout=10
+        )
+        
+        if response.status_code != 200:
+            return 0.0
+        
+        result = response.json()
+        
+        if isinstance(result, list) and len(result) > 0:
+            scores = result[0]
+            if isinstance(scores, list):
+                score_map = {item['label']: item['score'] for item in scores}
+                positive  = score_map.get('Positive', 0)
+                negative  = score_map.get('Negative', 0)
+                return round(float(positive - negative), 4)
+        
+        return 0.0
+        
+    except Exception:
+        return 0.0
 @st.cache_data
 def load_data():
     possible_files = glob.glob("global_market_data_*.json")
