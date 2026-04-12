@@ -2041,31 +2041,21 @@ def fetch_news_sentiment(symbol):
         articles = []
         scores   = []
 
-        finbert_scores = []
         for item in data['feed'][:10]:
             title = item.get('title', '')
-            vader_score = vader.polarity_scores(title)['compound']
-            finbert_score = get_finbert_score(title)
-            if finbert_score != 0.0:
-                combined_score = (vader_score + finbert_score) / 2
-            else:
-                combined_score = vader_score
-            scores.append(combined_score)
-            finbert_scores.append(finbert_score)
-    
+            score = vader.polarity_scores(title)['compound']
+            scores.append(score)
             articles.append({
                 'title':           title,
                 'description':     item.get('summary', '')[:200],
                 'source':          item.get('source', 'Unknown'),
                 'published':       item.get('time_published', '')[:8],
                 'url':             item.get('url', '#'),
-                'sentiment_score': round(combined_score, 4),
-                'sentiment_label': 'Positive' if combined_score >= 0.05 else 'Negative' if combined_score <= -0.05 else 'Neutral',
+                'sentiment_score': round(score, 4),
+                'sentiment_label': 'Positive' if score >= 0.05 else 'Negative' if score <= -0.05 else 'Neutral',
             })
-    
 
         avg_score = sum(scores) / len(scores) if scores else 0
-        finbert_avg   = sum(finbert_scores) / len(finbert_scores) if finbert_scores else 0
         label = ('BULLISH' if avg_score >= 0.05
                  else 'BEARISH' if avg_score <= -0.05
                  else 'NEUTRAL')
@@ -2078,52 +2068,12 @@ def fetch_news_sentiment(symbol):
                 'total_articles': len(articles),
                 'combined_score': round(avg_score, 4),
                 'vader_avg':      round(avg_score, 4),
-                'alpha_avg':      round(finbert_avg, 4),
+                'alpha_avg':      0.0,
                 'sentiment':      label,
             }
         }
     except Exception:
         return {}
-def get_finbert_score(text):
-    """Call HuggingFace free API for FinBERT sentiment"""
-    try:
-        import requests as req
-        
-        # Get token
-        try:
-            hf_token = st.secrets.get("HF_TOKEN", "")
-        except:
-            hf_token = os.getenv("HF_TOKEN", "")
-        
-        API_URL = "https://api-inference.huggingface.co/models/yiyanghkust/finbert-tone"
-        headers = {}
-        if hf_token:
-            headers["Authorization"] = f"Bearer {hf_token}"
-        
-        response = req.post(
-            API_URL,
-            headers=headers,
-            json={"inputs": text[:512]},
-            timeout=10
-        )
-        
-        if response.status_code != 200:
-            return 0.0
-        
-        result = response.json()
-        
-        if isinstance(result, list) and len(result) > 0:
-            scores = result[0]
-            if isinstance(scores, list):
-                score_map = {item['label']: item['score'] for item in scores}
-                positive  = score_map.get('Positive', 0)
-                negative  = score_map.get('Negative', 0)
-                return round(float(positive - negative), 4)
-        
-        return 0.0
-        
-    except Exception:
-        return 0.0
 @st.cache_data
 def load_data():
     possible_files = glob.glob("global_market_data_*.json")
