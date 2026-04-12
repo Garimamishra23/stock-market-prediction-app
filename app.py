@@ -2041,21 +2041,31 @@ def fetch_news_sentiment(symbol):
         articles = []
         scores   = []
 
+        finbert_scores = []
         for item in data['feed'][:10]:
             title = item.get('title', '')
-            score = vader.polarity_scores(title)['compound']
-            scores.append(score)
+            vader_score = vader.polarity_scores(title)['compound']
+            finbert_score = get_finbert_score(title)
+            if finbert_score != 0.0:
+                combined_score = (vader_score + finbert_score) / 2
+            else:
+                combined_score = vader_score
+            scores.append(combined_score)
+            finbert_scores.append(finbert_score)
+    
             articles.append({
                 'title':           title,
                 'description':     item.get('summary', '')[:200],
                 'source':          item.get('source', 'Unknown'),
                 'published':       item.get('time_published', '')[:8],
                 'url':             item.get('url', '#'),
-                'sentiment_score': round(score, 4),
-                'sentiment_label': 'Positive' if score >= 0.05 else 'Negative' if score <= -0.05 else 'Neutral',
+                'sentiment_score': round(combined_score, 4),
+                'sentiment_label': 'Positive' if combined_score >= 0.05 else 'Negative' if combined_score <= -0.05 else 'Neutral',
             })
+    
 
         avg_score = sum(scores) / len(scores) if scores else 0
+        finbert_avg   = sum(finbert_scores) / len(finbert_scores) if finbert_scores else 0
         label = ('BULLISH' if avg_score >= 0.05
                  else 'BEARISH' if avg_score <= -0.05
                  else 'NEUTRAL')
@@ -2068,7 +2078,7 @@ def fetch_news_sentiment(symbol):
                 'total_articles': len(articles),
                 'combined_score': round(avg_score, 4),
                 'vader_avg':      round(avg_score, 4),
-                'alpha_avg':      0.0,
+                'alpha_avg':      round(finbert_avg, 4),
                 'sentiment':      label,
             }
         }
